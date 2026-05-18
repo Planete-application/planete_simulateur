@@ -1644,20 +1644,21 @@
       if (currentKw) refreshPrices();
     });
 
-    bvOption.addEventListener('change', () => {
-      const previousBvPv = lastBvPv;
-      const nextBv = radioTri.checked ? BV.tri : BV.mono;
-      const pv = parseVal(pvInput.value);
-      if (currentKw) refreshPrices();
-      bvSelected = Boolean(bvOption.checked);
+          bvOption.addEventListener('change', () => {
+        const previousBvPv = lastBvPv;
+        const nextBv = radioTri.checked ? BV.tri : BV.mono;
+        const pv = parseVal(pvInput.value);
+      
+        bvSelected = Boolean(bvOption.checked);
         lastBvPv = bvSelected ? nextBv.pv : 0;
-
-      if (pv) {
-        const adjustedPv = pv - previousBvPv + lastBvPv;
-        pvInput.value = Math.round(adjustedPv).toLocaleString('fr-FR');
-      }
-
-    });
+      
+        if (pv) {
+          const adjustedPv = pv - previousBvPv + lastBvPv;
+          pvInput.value = Math.round(adjustedPv).toLocaleString('fr-FR');
+        }
+      
+        if (currentKw) refreshPrices();
+      });
 
     customKwcInput.addEventListener('input', () => {
       customKwcInput.value = customKwcInput.value
@@ -1720,7 +1721,6 @@
     }
 
     function compute() {
-        if (currentKw && baseData) syncFinancials();
       const totals = (currentKw && baseData) ? syncFinancials() : null;
       const prTotal = totals ? totals.pr : curPR;
       const cibleTotal = totals ? totals.cible : curCible;
