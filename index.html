@@ -1545,7 +1545,10 @@
       if (!currentKw || !baseData) return;
       updatePhaseUi();
       const data = applyTriphase(baseData, radioTri.checked);
+      bvSelected = Boolean(bvOption && bvOption.checked);
       const bv = bvSelected ? (radioTri.checked ? BV.tri : BV.mono) : null;
+      lastBvPv = bv ? bv.pv : 0;
+
 
       curPR = data.pr + (bv ? bv.pr : 0);
       curCible = data.cible + (bv ? bv.pv : 0);
@@ -1630,7 +1633,7 @@
       const nextBv = radioTri.checked ? BV.tri : BV.mono;
       const pv = parseVal(pvInput.value);
       if (currentKw) refreshPrices();
-        bvSelected = bvOption.checked;
+      bvSelected = Boolean(bvOption.checked);
         lastBvPv = bvSelected ? nextBv.pv : 0;
 
       if (pv) {
