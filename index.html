@@ -1554,7 +1554,14 @@
       curCible = data.cible + (bv ? bv.pv : 0);
       cibleMC = data.mc || ((curCible - curPR) / curCible) * 100;
       curPlancher = Math.ceil(curPR / (1 - MC_MIN));
-        return { data, bv };
+         return {
+        data,
+        bv,
+        pr: curPR,
+        cible: curCible,
+        plancher: curPlancher,
+        cibleMc: cibleMC
+      };
     }
 
     function refreshPrices() {
@@ -1714,7 +1721,13 @@
 
     function compute() {
         if (currentKw && baseData) syncFinancials();
+      const totals = (currentKw && baseData) ? syncFinancials() : null;
+      const prTotal = totals ? totals.pr : curPR;
+      const cibleTotal = totals ? totals.cible : curCible;
+      const plancherTotal = totals ? totals.plancher : curPlancher;
+      const cibleMcTotal = totals ? totals.cibleMc : cibleMC;
 
+    
       const pv = parseVal(pvInput.value);
       const body = document.getElementById('result-body');
       const blocked = document.getElementById('blocked-banner');
@@ -1723,7 +1736,7 @@
       blocked.classList.remove('show');
       updateTargetDelta(pv);
 
-      if (!curPR || !curCible) {
+      if (!prTotal || !cibleTotal) {
         updateSummary();
         renderEmpty();
         return;
@@ -1735,11 +1748,11 @@
         return;
       }
 
-     const marge = pv - curPR;
+      const marge = pv - prTotal;
       const mc = (marge / pv) * 100;
 
-      if (mc < 45) {
-        const missing = Math.max(0, curPlancher - pv);
+       if (pv < plancherTotal) {
+        const missing = Math.max(0, plancherTotal - pv);
 
         pvInput.classList.add('blocked');
         blocked.classList.add('show');
@@ -1751,14 +1764,14 @@
           <div class="empty-result">
             <strong>Prix non autorisé</strong>
             <span>Le prix saisi est sous la marge minimum autorisée.</span>
-            <div class="minimum-note">Minimum autorisé : ${fmt(curPlancher)}</div>
+            <div class="minimum-note">Minimum autorisé : ${fmt(plancherTotal)}</div>
             <button class="btn-minimum result-action" type="button" onclick="setPVMinimum()">Mettre au minimum autorisé</button>
           </div>`;
         return;
       }
-
-      const ecart = pv - curCible;
-      const diffPts = mc - cibleMC;
+      
+      const ecart = pv - cibleTotal;
+      const diffPts = mc - cibleMcTotal;
       const barPct = Math.min(100, Math.max(0, mc)).toFixed(1);
       const rate = getCommissionRate(mc);
       const commission = marge * rate;
@@ -1793,7 +1806,7 @@
           </div>
         </div>
         <div class="bar-track"><div class="bar-fill" style="width:${barPct}%"></div></div>
-        <div class="target-label"><span>Prix de Vente cible ${cibleMC.toFixed(1)} %${bvSelected ? ' + My Smart Battery' : ''}</span></div>
+        <div class="target-label"><span>Prix de Vente cible ${cibleMcTotal.toFixed(1)} %${bvSelected ? ' + My Smart Battery' : ''}</span></div>
         <div class="tier-scale">
           <div class="tier danger">45 %<br>minimum</div>
           <div class="tier ok">50 %<br>bonne marge</div>
