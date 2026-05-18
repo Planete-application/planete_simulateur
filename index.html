@@ -1199,7 +1199,7 @@
               </label>
               <label class="phase-option" id="phaseTriCard">
                 <input type="radio" name="phase" value="tri" id="phaseTri">
-                Triphasé (+10%)
+                <span id="phaseTriText">Triphasé (+10%)</span>
               </label>
             </div>
 
@@ -1373,19 +1373,37 @@
     });
 
     const TARIFS_BASE = {
-      3:{mat:5738,pose:2525,pr:3545,cible:8863},6:{mat:8505,pose:3400,pr:5002,cible:12505},9:{mat:12043,pose:3900,pr:6617,cible:16543},
-      12:{mat:16358,pose:4400,pr:8543,cible:21358},15:{mat:17440,pose:4460,pr:9000,cible:22500},18:{mat:21333,pose:5210,pr:9500,cible:27143},
-      20:{mat:22101,pose:7085,pr:10425,cible:29786},25:{mat:25056,pose:7710,pr:11678,cible:33366},30:{mat:27817,pose:8960,pr:13082,cible:37377},
-      36:{mat:32207,pose:10050,pr:15000,cible:42857},50:{mat:35150,pose:13800,pr:19900,cible:49750},60:{mat:40650,pose:17550,pr:23600,cible:59000},
-      70:{mat:50275,pose:21550,pr:29050,cible:72625},80:{mat:51900,pose:23550,pr:30500,cible:76250},90:{mat:58400,pose:25800,pr:34000,cible:85000},
-      100:{mat:65728,pose:31650,pr:39431,cible:98578},150:{mat:94650,pose:37900,pr:53500,cible:133750},200:{mat:123400,pose:42900,pr:67000,cible:167500},
-      250:{mat:148400,pose:47900,pr:79000,cible:197500}
+ 3:{mat:5440,pose:1890,pr:3573,cible:7940,mc:55},
+      4:{mat:6511,pose:2190,pr:4190,cible:9311,mc:55},
+      5:{mat:7516,pose:2390,pr:4732,cible:10516,mc:55},
+      6:{mat:10249,pose:2590,pr:6052,cible:13449,mc:55},
+      7:{mat:11256,pose:2750,pr:6577,cible:14616,mc:55},
+      8:{mat:12218,pose:2890,pr:7073,cible:15718,mc:55},
+      9:{mat:13340,pose:2990,pr:7623,cible:16940,mc:55},
+      10:{mat:14331,pose:3150,pr:8141,cible:18091,mc:55},
+      11:{mat:15433,pose:3290,pr:8700,cible:19333,mc:55},
+      12:{mat:16371,pose:3390,pr:9167,cible:20371,mc:55},
+      15:{mat:17616,pose:4638,pr:10402,cible:23116,mc:55},
+      18:{mat:18579,pose:5388,pr:11173,cible:24829,mc:55},
+      20:{mat:19013,pose:7263,pr:12212,cible:27138,mc:55},
+      25:{mat:23953,pose:7869,pr:13081,cible:32703,mc:60},
+      30:{mat:25128,pose:9119,pr:14051,cible:35128,mc:60},
+      36:{mat:31900,pose:10030,pr:17260,cible:43150,mc:60},
+      50:{mat:38285,pose:14130,pr:21514,cible:53785,mc:60},
+      60:{mat:44925,pose:17880,pr:25670,cible:64175,mc:60},
+      70:{mat:46219,pose:21880,pr:31261,cible:69469,mc:55},
+      80:{mat:49170,pose:23861,pr:33489,cible:74420,mc:55},
+      90:{mat:53364,pose:26111,pr:36389,cible:80864,mc:55},
+      100:{mat:58054,pose:32102,pr:41312,cible:91804,mc:55},
+      150:{mat:82551,pose:38352,pr:55148,cible:122551,mc:55},
+      200:{mat:125755,pose:43352,pr:68302,cible:170755,mc:60},
+      250:{mat:151620,pose:48352,pr:80648,cible:201620,mc:60}
     };
 
     const MC_MIN = 0.45;
     const BV = {
-      mono: { pr: 1040, pv: 2095.23 },
-      tri:  { pr: 1721, pv: 3428.57 }
+      mono: { pr: 1040, pv: 2085 },
+      tri:  { pr: 1721, pv: 3127 }
     };
 
     let bvSelected = false;
@@ -1406,6 +1424,7 @@
     const bvWrap = document.getElementById('bv-wrap');
     const phaseMonoCard = document.getElementById('phaseMonoCard');
     const phaseTriCard = document.getElementById('phaseTriCard');
+    const phaseTriText = document.getElementById('phaseTriText');
     const summaryBar = document.getElementById('summaryBar');
     const mobileSummary = document.getElementById('mobileSummary');
     const summaryMc = document.getElementById('s-mc');
@@ -1448,6 +1467,18 @@
     }
 
     function updatePhaseUi() {
+      const forceTri = currentKw >= 15;
+
+      if (forceTri) {
+        radioMono.checked = false;
+        radioTri.checked = true;
+        phaseMonoCard.style.display = 'none';
+        phaseTriText.textContent = 'Triphasé';
+      } else {
+        phaseMonoCard.style.display = 'flex';
+        phaseTriText.textContent = 'Triphasé (+10%)';
+      }
+
       phaseMonoCard.classList.toggle('active', radioMono.checked);
       phaseTriCard.classList.toggle('active', radioTri.checked);
     }
@@ -1478,7 +1509,7 @@
         return { data: TARIFS_BASE[kw], baseKw: kw, isCustom: false };
       }
 
-      const lowerKw = (kw > 3 && kw < 6) ? 6 : keys.filter(k => k < kw).pop();
+      const lowerKw = keys.filter(k => k < kw).pop();
       if (!lowerKw) return null;
 
       const base = TARIFS_BASE[lowerKw];
@@ -1489,7 +1520,8 @@
           mat: Math.round(base.mat * ratio),
           pose: Math.round(base.pose * ratio),
           pr: Math.round(base.pr * ratio),
-          cible: Math.round(base.cible * ratio)
+          cible: Math.round(base.cible * ratio),
+          mc: base.mc
         },
         baseKw: lowerKw,
         isCustom: true
@@ -1498,39 +1530,25 @@
 
     function applyTriphase(data, isTri) {
       if (!data) return null;
-      const c = isTri ? 1.10 : 1.0;
+      const c = (isTri && currentKw < 15) ? 1.10 : 1.0;
 
       return {
         mat: Math.round(data.mat * c),
         pose: Math.round(data.pose * c),
         pr: Math.round(data.pr * c),
-        cible: Math.round(data.cible * c)
-      };
-    }
-  function getFraisCible(kw) {
-      const fraisVtDpConsuel = 600;
-      let bureauControle = 0;
-
-      if (kw >= 50) {
-        bureauControle = 900;
-      } else if (kw >= 36) {
-        bureauControle = 600;
-      } else if (kw >= 15) {
-        bureauControle = 440;
-      }
-
-      return fraisVtDpConsuel + bureauControle;
+        cible: Math.round(data.cible * c),
+        mc: data.mc      };
     }
 
     function refreshPrices() {
       if (!currentKw || !baseData) return;
-
+      updatePhaseUi();
       const data = applyTriphase(baseData, radioTri.checked);
       const bv = bvSelected ? (radioTri.checked ? BV.tri : BV.mono) : null;
 
       curPR = data.pr + (bv ? bv.pr : 0);
-      curCible = data.mat + data.pose + getFraisCible(currentKw) + (bv ? bv.pv : 0);
-      cibleMC = ((curCible - curPR) / curCible) * 100;
+      curCible = data.cible + (bv ? bv.pv : 0);
+      cibleMC = data.mc || ((curCible - curPR) / curCible) * 100;
       curPlancher = Math.ceil(curPR / (1 - MC_MIN));
 
       document.getElementById('v-mat').textContent = fmt(data.mat);
