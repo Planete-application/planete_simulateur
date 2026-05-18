@@ -1407,6 +1407,7 @@
     };
 
     let bvSelected = false;
+    let lastBvPv = 0;
     let curPR = 0, curCible = 0, curPlancher = 0, cibleMC = 0;
     let currentKw = null, baseData = null, baseReferenceKw = null, isCustomKwc = false;
 
@@ -1585,6 +1586,7 @@
         bvWrap.style.display = 'none';
         if (bvOption) bvOption.checked = false;
         bvSelected = false;
+        lastBvPv = 0;
         document.getElementById('floor-card').classList.remove('show');
         document.getElementById('blocked-banner').classList.remove('show');
         kwcMethod.style.display = 'none';
@@ -1604,18 +1606,38 @@
     }
 
     radioMono.addEventListener('change', () => {
+       if (bvSelected && lastBvPv) {
+        const pv = parseVal(pvInput.value);
+        lastBvPv = BV.mono.pv;
+        if (pv) pvInput.value = Math.round(pv - BV.tri.pv + BV.mono.pv).toLocaleString('fr-FR');
+      }
       updatePhaseUi();
       if (currentKw) refreshPrices();
     });
 
     radioTri.addEventListener('change', () => {
+       if (bvSelected && lastBvPv) {
+        const pv = parseVal(pvInput.value);
+        lastBvPv = BV.tri.pv;
+        if (pv) pvInput.value = Math.round(pv - BV.mono.pv + BV.tri.pv).toLocaleString('fr-FR');
+      }
       updatePhaseUi();
       if (currentKw) refreshPrices();
     });
 
     bvOption.addEventListener('change', () => {
-      bvSelected = bvOption.checked;
+      const previousBvPv = lastBvPv;
+      const nextBv = radioTri.checked ? BV.tri : BV.mono;
+      const pv = parseVal(pvInput.value);
       if (currentKw) refreshPrices();
+        bvSelected = bvOption.checked;
+        lastBvPv = bvSelected ? nextBv.pv : 0;
+
+      if (pv) {
+        const adjustedPv = pv - previousBvPv + lastBvPv;
+        pvInput.value = Math.round(adjustedPv).toLocaleString('fr-FR');
+      }
+
     });
 
     customKwcInput.addEventListener('input', () => {
