@@ -603,6 +603,15 @@
       background: white;
       border-color: rgba(124,181,24,0.36);
     }
+   .metric.battery {
+      display: none;
+      border-color: rgba(35,151,189,0.28);
+      background: var(--blue-pale);
+    }
+
+    .metric.battery.show {
+      display: block;
+    }
 
     .metric-label {
       margin-bottom: 5px;
@@ -1223,6 +1232,22 @@
                 <div class="metric-label">Pose HT</div>
                 <div class="metric-value" id="v-pose">—</div>
               </div>
+              <div class="metric">
+                <div class="metric-label">PV DP</div>
+                <div class="metric-value" id="v-dp">—</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">PV VT</div>
+                <div class="metric-value" id="v-vt">—</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">PV Consuel</div>
+                <div class="metric-value" id="v-consuel">—</div>
+              </div>
+              <div class="metric battery" id="battery-metric">
+                <div class="metric-label">My Smart Battery</div>
+                <div class="metric-value" id="v-battery">—</div>
+              </div>
               <div class="metric target">
                 <div class="metric-label">Prix cible recommandé</div>
                 <div class="metric-value" id="v-cible">—</div>
@@ -1611,9 +1636,16 @@
       const totals = syncFinancials();
       if (!totals) return;
       const data = totals.data;
+      const batteryMetric = document.getElementById('battery-metric');
+
 
       document.getElementById('v-mat').textContent = fmt(data.mat);
       document.getElementById('v-pose').textContent = fmt(data.pose);
+      document.getElementById('v-dp').textContent = fmt(data.dp || 0);
+      document.getElementById('v-vt').textContent = fmt(data.vt || 0);
+      document.getElementById('v-consuel').textContent = fmt(data.consuel || 0);
+      document.getElementById('v-battery').textContent = totals.bv ? fmt(totals.bv.pv) : '—';
+      batteryMetric.classList.toggle('show', Boolean(totals.bv));
       document.getElementById('v-cible').textContent = fmt(curCible);
       document.getElementById('v-cible-mc').textContent = 'MC ref : ' + cibleMC.toFixed(1) + ' %';
       document.getElementById('cost-grid').style.display = 'grid';
@@ -1642,6 +1674,7 @@
 
       if (!calculated || numericKw < 3 || numericKw > 250) {
         document.getElementById('cost-grid').style.display = 'none';
+        document.getElementById('battery-metric').classList.remove('show');
         phaseWrap.style.display = 'none';
         bvWrap.style.display = 'none';
         if (bvOption) bvOption.checked = false;
