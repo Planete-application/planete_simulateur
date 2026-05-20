@@ -1630,24 +1630,34 @@
       };
     }
 
-    function refreshPrices() {
-      if (!currentKw || !baseData) return;
+     function updateBreakdownDisplay(totals, pv = 0) {
+      if (!totals || !totals.data) return;
 
-      const totals = syncFinancials();
-      if (!totals) return;
       const data = totals.data;
-      const batteryMetric = document.getElementById('battery-metric');
+      const batteryMetric = document.getElementById('battery-metric');*
+      const pvReal = pv || 0;
+      const materialAdjustment = pvReal ? pvReal - totals.cible : 0;
+      const displayedMaterial = data.mat + materialAdjustment;
 
 
-      document.getElementById('v-mat').textContent = fmt(data.mat);
+      document.getElementById('v-mat').textContent = fmt(displayedMaterial);
       document.getElementById('v-pose').textContent = fmt(data.pose);
       document.getElementById('v-dp').textContent = fmt(data.dp || 0);
       document.getElementById('v-vt').textContent = fmt(data.vt || 0);
       document.getElementById('v-consuel').textContent = fmt(data.consuel || 0);
       document.getElementById('v-battery').textContent = totals.bv ? fmt(totals.bv.pv) : '—';
       batteryMetric.classList.toggle('show', Boolean(totals.bv));
-      document.getElementById('v-cible').textContent = fmt(curCible);
-      document.getElementById('v-cible-mc').textContent = 'MC ref : ' + cibleMC.toFixed(1) + ' %';
+       document.getElementById('v-cible').textContent = fmt(totals.cible);
+      document.getElementById('v-cible-mc').textContent = 'MC ref : ' + totals.cibleMc.toFixed(1) + ' %';
+    }
+
+    function refreshPrices() {
+      if (!currentKw || !baseData) return;
+
+      const totals = syncFinancials();
+      if (!totals) return;
+
+      updateBreakdownDisplay(totals, parseVal(pvInput.value));
       document.getElementById('cost-grid').style.display = 'grid';
       phaseWrap.style.display = 'grid';
       bvWrap.style.display = 'block';
@@ -1808,6 +1818,8 @@
       pvInput.classList.remove('blocked');
       blocked.classList.remove('show');
       updateTargetDelta(pv);
+      updateBreakdownDisplay(totals, pv);
+
 
       if (!prTotal || !cibleTotal) {
         updateSummary();
