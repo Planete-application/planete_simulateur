@@ -1634,7 +1634,7 @@
       if (!totals || !totals.data) return;
 
       const data = totals.data;
-      const batteryMetric = document.getElementById('battery-metric');*
+      const batteryMetric = document.getElementById('battery-metric');
       const pvReal = pv || 0;
       const materialAdjustment = pvReal ? pvReal - totals.cible : 0;
       const displayedMaterial = data.mat + materialAdjustment;
