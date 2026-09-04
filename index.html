@@ -553,12 +553,6 @@
       font-weight: 700;
     }
 
-    .option-row + .option-row {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
-    }
-
     .accordion-head {
       width: 100%;
       display: flex;
@@ -633,9 +627,13 @@
       box-shadow: 0 0 0 4px rgba(35,151,189,0.13);
     }
 
-    .select-detail {
+    .select-note {
+      display: none;
       margin-top: 8px;
-      min-height: 16px;
+    }
+
+    .select-note.show {
+      display: block;
     }
 
     .cost-grid {
@@ -1325,34 +1323,20 @@
               </button>
               <div class="accordion-body" id="battery-phys-body">
                 <select class="select-input" id="battery-phys" aria-label="Choisir une batterie physique"></select>
-                <p class="option-note select-detail" id="battery-phys-detail"></p>
               </div>
             </div>
 
             <div class="field-card" id="bornes-wrap" style="display:none;">
-              <div class="field-label">Bornes de recharge</div>
-
-              <div class="option-card option-row">
-                <div>
-                  <div class="option-title">Borne Mylight150 MySmartCharger (1,4 – 7,4 kW)</div>
-                  <div class="option-note">Prix de vente : <strong id="borne-mylight-price">—</strong> HT</div>
-                  <div class="option-note highlight">Profitez du cagnottage avec MySmartCharger</div>
-                </div>
-                <label class="switch" aria-label="Ajouter la borne Mylight150 MySmartCharger">
-                  <input type="checkbox" id="borne-mylight">
-                  <span class="switch-slider"></span>
-                </label>
-              </div>
-
-              <div class="option-card option-row">
-                <div>
-                  <div class="option-title">Borne Schneider 7,4 / 11 / 22 kW (mono et tri)</div>
-                  <div class="option-note">Prix de vente : <strong id="borne-schneider-price">—</strong> HT</div>
-                </div>
-                <label class="switch" aria-label="Ajouter la borne Schneider">
-                  <input type="checkbox" id="borne-schneider">
-                  <span class="switch-slider"></span>
-                </label>
+              <button class="accordion-head" type="button" id="borne-toggle" aria-expanded="false" aria-controls="borne-body">
+                <span>
+                  <span class="option-title">Borne de recharge</span>
+                  <span class="option-note" id="borne-summary">Aucune borne sélectionnée</span>
+                </span>
+                <span class="accordion-chevron" aria-hidden="true">▼</span>
+              </button>
+              <div class="accordion-body" id="borne-body">
+                <select class="select-input" id="borne-charge" aria-label="Choisir une borne de recharge"></select>
+                <p class="option-note highlight select-note" id="borne-note"></p>
               </div>
             </div>
 
@@ -1385,13 +1369,9 @@
                 <div class="metric-label">Batterie physique HT</div>
                 <div class="metric-value" id="v-battery-phys">—</div>
               </div>
-              <div class="metric accessory" id="borne-mylight-metric">
-                <div class="metric-label">Borne Mylight150 HT</div>
-                <div class="metric-value" id="v-borne-mylight">—</div>
-              </div>
-              <div class="metric accessory" id="borne-schneider-metric">
-                <div class="metric-label">Borne Schneider HT</div>
-                <div class="metric-value" id="v-borne-schneider">—</div>
+              <div class="metric accessory" id="borne-metric">
+                <div class="metric-label">Borne de recharge HT</div>
+                <div class="metric-value" id="v-borne">—</div>
               </div>
               <div class="metric target">
                 <div class="metric-label">Prix cible recommandé HT</div>
@@ -1608,40 +1588,41 @@
     const MARGE_STANDARD = 0.45;
     const MARGE_BORNE_SCHNEIDER = 0.50;
 
-    const pvDepuisPr = (pr, marge) => Math.round(pr / (1 - marge));
+    // Les tarifs ci-dessous sont les prix de vente HT ; la marge sert à déduire le prix de revient.
+    const prDepuisPv = (pv, marge) => pv * (1 - marge);
 
     const BATTERIES = {
-      none:          { label: 'Aucune batterie physique', short: '', pr: 0, pv: 0, marge: 0 },
-      atmoce7:       { label: 'Batterie 7 kWh ATMOCE', short: 'Batterie ATMOCE 7 kWh', pr: 3178.40, marge: MARGE_STANDARD },
-      retrofit_tri:  { label: 'Kit rétrofit triphasé + batterie ATMOCE 7 kWh', short: 'Kit rétrofit tri', pr: 4263, marge: MARGE_STANDARD },
-      retrofit_mono: { label: 'Kit rétrofit monophasé + batterie ATMOCE 7 kWh', short: 'Kit rétrofit mono', pr: 4219.50, marge: MARGE_STANDARD }
+      none:          { label: 'Aucune batterie physique', short: '', pv: 0, pr: 0, marge: 0 },
+      atmoce7:       { label: 'Batterie 7 kWh ATMOCE', short: 'Batterie ATMOCE 7 kWh', pv: 3178.40, marge: MARGE_STANDARD },
+      retrofit_tri:  { label: 'Kit rétrofit triphasé avec batterie ATMOCE 7 kWh', short: 'Kit rétrofit tri', pv: 4263, marge: MARGE_STANDARD },
+      retrofit_mono: { label: 'Kit rétrofit mono avec batterie ATMOCE 7 kWh', short: 'Kit rétrofit mono', pv: 4219.50, marge: MARGE_STANDARD }
     };
 
     const BORNES = {
-      mylight:   { label: 'Borne Mylight150 MySmartCharger', pr: 685.85, marge: MARGE_STANDARD },
-      schneider: { label: 'Borne Schneider 7,4 / 11 / 22 kW', pr: 945, marge: MARGE_BORNE_SCHNEIDER }
+      none:      { label: 'Aucune borne de recharge', short: '', pv: 0, pr: 0, marge: 0 },
+      mylight:   { label: 'Borne Mylight150 MySmartCharger (1,4 – 7,4 kW)', short: 'Borne Mylight150', pv: 685.85, marge: MARGE_STANDARD, note: 'Profitez du cagnottage avec MySmartCharger' },
+      schneider: { label: 'Borne Schneider 7,4 / 11 / 22 kW (mono et tri)', short: 'Borne Schneider', pv: 945, marge: MARGE_BORNE_SCHNEIDER }
     };
 
-    Object.keys(BATTERIES).forEach(key => {
-      const item = BATTERIES[key];
-      if (item.pr) item.pv = pvDepuisPr(item.pr, item.marge);
-    });
-
-    Object.keys(BORNES).forEach(key => {
-      const item = BORNES[key];
-      item.pv = pvDepuisPr(item.pr, item.marge);
+    [BATTERIES, BORNES].forEach(catalogue => {
+      Object.keys(catalogue).forEach(key => {
+        const item = catalogue[key];
+        if (item.pv) item.pr = prDepuisPv(item.pv, item.marge);
+      });
     });
 
     let bvSelected = false;
     let batterySelected = 'none';
-    let bornesSelected = { mylight: false, schneider: false };
+    let borneSelected = 'none';
     let lastOptionsPv = 0;
     let curPR = 0, curCible = 0, curPlancher = 0, cibleMC = 0;
     let currentKw = null, baseData = null, baseReferenceKw = null, isCustomKwc = false;
 
     const fmt = v => Math.round(v).toLocaleString('fr-FR') + ' €';
+    const fmtPrix = v => (Math.abs(v % 1) > 0.005
+      ? v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      : Math.round(v).toLocaleString('fr-FR')) + ' €';
     const fmtS = v => (v >= 0 ? '+' : '−') + Math.abs(Math.round(v)).toLocaleString('fr-FR') + ' €';
-    const fmt2 = v => v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
     const parseVal = s => parseFloat(String(s).replace(/\s/g,'').replace('€','').replace(',','.')) || 0;
     const getPvCible = data => Math.round(
       (data.mat || 0) +
@@ -1664,8 +1645,12 @@
     const batteryPhysBody = document.getElementById('battery-phys-body');
     const batteryPhysSelect = document.getElementById('battery-phys');
     const batteryPhysSummary = document.getElementById('battery-phys-summary');
-    const batteryPhysDetail = document.getElementById('battery-phys-detail');
     const bornesWrap = document.getElementById('bornes-wrap');
+    const borneToggle = document.getElementById('borne-toggle');
+    const borneBody = document.getElementById('borne-body');
+    const borneSelect = document.getElementById('borne-charge');
+    const borneSummary = document.getElementById('borne-summary');
+    const borneNote = document.getElementById('borne-note');
     const phaseMonoCard = document.getElementById('phaseMonoCard');
     const phaseTriCard = document.getElementById('phaseTriCard');
     const phaseTriText = document.getElementById('phaseTriText');
@@ -1710,32 +1695,28 @@
       return { label: 'Très bonne vente', cls: 'status-success' };
     }
 
-    function buildBatteryOptions() {
-      batteryPhysSelect.innerHTML = Object.keys(BATTERIES).map(key => {
-        const item = BATTERIES[key];
-        const label = item.pr ? item.label + ' — ' + fmt(item.pv) : item.label;
+    function buildSelectOptions(select, catalogue) {
+      select.innerHTML = Object.keys(catalogue).map(key => {
+        const item = catalogue[key];
+        const label = item.pv ? item.label + ' — ' + fmtPrix(item.pv) : item.label;
         return '<option value="' + key + '">' + label + '</option>';
       }).join('');
-      batteryPhysSelect.value = batterySelected;
     }
 
-    function updateBatterySummary() {
-      const item = BATTERIES[batterySelected];
+    function updateOptionSummaries() {
+      const battery = BATTERIES[batterySelected];
+      batteryPhysSummary.textContent = (battery && battery.pv)
+        ? (battery.short || battery.label) + ' · ' + fmtPrix(battery.pv)
+        : 'Aucune batterie sélectionnée';
 
-      if (!item || !item.pr) {
-        batteryPhysSummary.textContent = 'Aucune batterie sélectionnée';
-        batteryPhysDetail.textContent = '';
-        return;
-      }
+      const borne = BORNES[borneSelected];
+      borneSummary.textContent = (borne && borne.pv)
+        ? (borne.short || borne.label) + ' · ' + fmtPrix(borne.pv)
+        : 'Aucune borne sélectionnée';
 
-      batteryPhysSummary.textContent = (item.short || item.label) + ' · ' + fmt(item.pv);
-      batteryPhysDetail.textContent =
-        'Coût ' + fmt2(item.pr) + ' HT · marge ' + Math.round(item.marge * 100) + ' % · prix de vente ' + fmt(item.pv) + ' HT';
-    }
-
-    function updateBornesLabels() {
-      document.getElementById('borne-mylight-price').textContent = fmt(BORNES.mylight.pv);
-      document.getElementById('borne-schneider-price').textContent = fmt(BORNES.schneider.pv);
+      const note = borne && borne.note ? borne.note : '';
+      borneNote.textContent = note;
+      borneNote.classList.toggle('show', Boolean(note));
     }
 
     function getOptionsTotals() {
@@ -1751,21 +1732,20 @@
       }
 
       const battery = BATTERIES[batterySelected];
-      if (battery && battery.pr) {
+      if (battery && battery.pv) {
         pr += battery.pr;
         pv += battery.pv;
         lines.push({ label: battery.short || battery.label, pv: battery.pv });
       }
 
-      Object.keys(BORNES).forEach(key => {
-        if (!bornesSelected[key]) return;
-        const borne = BORNES[key];
+      const borne = BORNES[borneSelected];
+      if (borne && borne.pv) {
         pr += borne.pr;
         pv += borne.pv;
-        lines.push({ label: borne.label, pv: borne.pv });
-      });
+        lines.push({ label: borne.short || borne.label, pv: borne.pv });
+      }
 
-      return { pr: Math.round(pr), pv: Math.round(pv), lines };
+      return { pr, pv, lines };
     }
 
     function updatePhaseUi() {
@@ -1857,7 +1837,7 @@
       const options = getOptionsTotals();
 
       curPR = data.pr + options.pr;
-      curCible = getPvCible(data) + options.pv;
+      curCible = Math.round(getPvCible(data) + options.pv);
       cibleMC = curCible ? ((curCible - curPR) / curCible) * 100 : (data.mc || 0);
       curPlancher = Math.ceil(curPR / (1 - MC_MIN));
 
@@ -1891,15 +1871,14 @@
       batteryMetric.classList.toggle('show', Boolean(totals.bv));
 
       const battery = BATTERIES[batterySelected];
-      const hasBattery = Boolean(battery && battery.pr);
-      document.getElementById('v-battery-phys').textContent = hasBattery ? fmt(battery.pv) : '—';
+      const hasBattery = Boolean(battery && battery.pv);
+      document.getElementById('v-battery-phys').textContent = hasBattery ? fmtPrix(battery.pv) : '—';
       document.getElementById('battery-phys-metric').classList.toggle('show', hasBattery);
 
-      Object.keys(BORNES).forEach(key => {
-        const active = Boolean(bornesSelected[key]);
-        document.getElementById('v-borne-' + key).textContent = active ? fmt(BORNES[key].pv) : '—';
-        document.getElementById('borne-' + key + '-metric').classList.toggle('show', active);
-      });
+      const borne = BORNES[borneSelected];
+      const hasBorne = Boolean(borne && borne.pv);
+      document.getElementById('v-borne').textContent = hasBorne ? fmtPrix(borne.pv) : '—';
+      document.getElementById('borne-metric').classList.toggle('show', hasBorne);
 
        document.getElementById('v-cible').textContent = fmt(totals.cible);
       document.getElementById('v-cible-mc').textContent = 'MC ref : ' + totals.cibleMc.toFixed(1) + ' %';
@@ -1911,12 +1890,13 @@
       const totals = syncFinancials();
       if (!totals) return;
 
-      if (totals.options.pv !== lastOptionsPv) {
+      const optionsPv = Math.round(totals.options.pv);
+      if (optionsPv !== lastOptionsPv) {
         const currentPv = parseVal(pvInput.value);
         if (currentPv) {
-          pvInput.value = Math.round(currentPv - lastOptionsPv + totals.options.pv).toLocaleString('fr-FR');
+          pvInput.value = Math.round(currentPv - lastOptionsPv + optionsPv).toLocaleString('fr-FR');
         }
-        lastOptionsPv = totals.options.pv;
+        lastOptionsPv = optionsPv;
       }
 
       updateBreakdownDisplay(totals, parseVal(pvInput.value));
@@ -1950,12 +1930,7 @@
         document.getElementById('cost-grid').style.display = 'none';
         document.getElementById('battery-metric').classList.remove('show');
         document.getElementById('battery-phys-metric').classList.remove('show');
-        Object.keys(BORNES).forEach(key => {
-          document.getElementById('borne-' + key + '-metric').classList.remove('show');
-          const input = document.getElementById('borne-' + key);
-          if (input) input.checked = false;
-          bornesSelected[key] = false;
-        });
+        document.getElementById('borne-metric').classList.remove('show');
         phaseWrap.style.display = 'none';
         bvWrap.style.display = 'none';
         batteryPhysWrap.style.display = 'none';
@@ -1963,8 +1938,10 @@
         if (bvOption) bvOption.checked = false;
         bvSelected = false;
         batterySelected = 'none';
+        borneSelected = 'none';
         batteryPhysSelect.value = 'none';
-        updateBatterySummary();
+        borneSelect.value = 'none';
+        updateOptionSummaries();
         lastOptionsPv = 0;
         document.getElementById('floor-card').classList.remove('show');
         document.getElementById('blocked-banner').classList.remove('show');
@@ -2007,17 +1984,20 @@
 
     batteryPhysSelect.addEventListener('change', () => {
       batterySelected = batteryPhysSelect.value;
-      updateBatterySummary();
+      updateOptionSummaries();
       if (currentKw) refreshPrices();
     });
 
-    Object.keys(BORNES).forEach(key => {
-      const input = document.getElementById('borne-' + key);
-      if (!input) return;
-      input.addEventListener('change', () => {
-        bornesSelected[key] = input.checked;
-        if (currentKw) refreshPrices();
-      });
+    borneToggle.addEventListener('click', () => {
+      const expanded = borneToggle.getAttribute('aria-expanded') === 'true';
+      borneToggle.setAttribute('aria-expanded', String(!expanded));
+      borneBody.classList.toggle('show', !expanded);
+    });
+
+    borneSelect.addEventListener('change', () => {
+      borneSelected = borneSelect.value;
+      updateOptionSummaries();
+      if (currentKw) refreshPrices();
     });
 
     customKwcInput.addEventListener('input', () => {
@@ -2084,7 +2064,7 @@
       if (!lines || !lines.length) return '';
 
       const rows = lines.map(line =>
-        `<div class="options-recap-line"><span>${line.label}</span><span>${fmt(line.pv)}</span></div>`
+        `<div class="options-recap-line"><span>${line.label}</span><span>${fmtPrix(line.pv)}</span></div>`
       ).join('');
 
       return `
@@ -2201,9 +2181,11 @@
         </div>`;
     }
 
-    buildBatteryOptions();
-    updateBatterySummary();
-    updateBornesLabels();
+    buildSelectOptions(batteryPhysSelect, BATTERIES);
+    buildSelectOptions(borneSelect, BORNES);
+    batteryPhysSelect.value = batterySelected;
+    borneSelect.value = borneSelected;
+    updateOptionSummaries();
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
