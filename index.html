@@ -77,7 +77,8 @@
     }
 
     button,
-    input {
+    input,
+    select {
       font-family: inherit;
     }
 
@@ -542,49 +543,99 @@
       line-height: 1.45;
     }
 
-    .switch {
-      position: relative;
+    .option-note strong {
+      color: var(--blue-dark);
+    }
+
+    .option-note.highlight {
+      margin-top: 4px;
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .option-row + .option-row {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .accordion-head {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      text-align: left;
+    }
+
+    .accordion-head:focus-visible {
+      outline: 2px solid var(--blue);
+      outline-offset: 4px;
+      border-radius: var(--radius-sm);
+    }
+
+    .accordion-chevron {
       flex: 0 0 auto;
-      width: 48px;
-      height: 28px;
-      display: inline-block;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .switch-slider {
-      position: absolute;
-      inset: 0;
-      background: #dbeaf0;
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border: 1px solid var(--border-strong);
-      border-radius: 999px;
-      transition: background 0.2s ease, border-color 0.2s ease;
-    }
-
-    .switch-slider::before {
-      content: '';
-      position: absolute;
-      width: 22px;
-      height: 22px;
-      left: 2px;
-      top: 2px;
-      background: white;
       border-radius: 50%;
-      box-shadow: 0 2px 7px rgba(13,43,54,0.18);
+      background: white;
+      color: var(--text-sub);
+      font-size: 11px;
       transition: transform 0.2s ease;
     }
 
-    .switch input:checked + .switch-slider {
-      background: var(--blue);
+    .accordion-head[aria-expanded="true"] .accordion-chevron {
+      transform: rotate(180deg);
       border-color: var(--blue);
+      color: var(--blue-dark);
     }
 
-    .switch input:checked + .switch-slider::before {
-      transform: translateX(20px);
+    .accordion-body {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .accordion-body.show {
+      display: block;
+    }
+
+    .select-input {
+      width: 100%;
+      height: 52px;
+      padding: 0 42px 0 14px;
+      border: 1.5px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      background-color: white;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234f7f92' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .select-input:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 4px rgba(35,151,189,0.13);
+    }
+
+    .select-detail {
+      margin-top: 8px;
+      min-height: 16px;
     }
 
     .cost-grid {
@@ -606,13 +657,15 @@
       background: white;
       border-color: rgba(124,181,24,0.36);
     }
-   .metric.battery {
+   .metric.battery,
+   .metric.accessory {
       display: none;
       border-color: rgba(35,151,189,0.28);
       background: var(--blue-pale);
     }
 
-    .metric.battery.show {
+    .metric.battery.show,
+    .metric.accessory.show {
       display: block;
     }
 
@@ -865,6 +918,42 @@
       color: var(--text);
       font-size: 18px;
       font-weight: 800;
+    }
+
+    .options-recap {
+      display: none;
+      margin-bottom: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(13,43,54,0.06);
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.80);
+    }
+
+    .options-recap.show {
+      display: block;
+    }
+
+    .options-recap-label {
+      margin-bottom: 6px;
+      color: var(--text-sub);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.45px;
+      text-transform: uppercase;
+    }
+
+    .options-recap-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 3px 0;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .options-recap-line span:last-child {
+      white-space: nowrap;
     }
 
     .bar-track {
@@ -1226,6 +1315,47 @@
               </div>
             </div>
 
+            <div class="field-card" id="battery-phys-wrap" style="display:none;">
+              <button class="accordion-head" type="button" id="battery-phys-toggle" aria-expanded="false" aria-controls="battery-phys-body">
+                <span>
+                  <span class="option-title">Batterie physique</span>
+                  <span class="option-note" id="battery-phys-summary">Aucune batterie sélectionnée</span>
+                </span>
+                <span class="accordion-chevron" aria-hidden="true">▼</span>
+              </button>
+              <div class="accordion-body" id="battery-phys-body">
+                <select class="select-input" id="battery-phys" aria-label="Choisir une batterie physique"></select>
+                <p class="option-note select-detail" id="battery-phys-detail"></p>
+              </div>
+            </div>
+
+            <div class="field-card" id="bornes-wrap" style="display:none;">
+              <div class="field-label">Bornes de recharge</div>
+
+              <div class="option-card option-row">
+                <div>
+                  <div class="option-title">Borne Mylight150 MySmartCharger (1,4 – 7,4 kW)</div>
+                  <div class="option-note">Prix de vente : <strong id="borne-mylight-price">—</strong> HT</div>
+                  <div class="option-note highlight">Profitez du cagnottage avec MySmartCharger</div>
+                </div>
+                <label class="switch" aria-label="Ajouter la borne Mylight150 MySmartCharger">
+                  <input type="checkbox" id="borne-mylight">
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+
+              <div class="option-card option-row">
+                <div>
+                  <div class="option-title">Borne Schneider 7,4 / 11 / 22 kW (mono et tri)</div>
+                  <div class="option-note">Prix de vente : <strong id="borne-schneider-price">—</strong> HT</div>
+                </div>
+                <label class="switch" aria-label="Ajouter la borne Schneider">
+                  <input type="checkbox" id="borne-schneider">
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+            </div>
+
             <div class="cost-grid" id="cost-grid" style="display:none;">
               <div class="metric">
                 <div class="metric-label">Matériel HT</div>
@@ -1250,6 +1380,18 @@
               <div class="metric battery" id="battery-metric">
                 <div class="metric-label">My Smart Battery HT</div>
                 <div class="metric-value" id="v-battery">—</div>
+              </div>
+              <div class="metric accessory" id="battery-phys-metric">
+                <div class="metric-label">Batterie physique HT</div>
+                <div class="metric-value" id="v-battery-phys">—</div>
+              </div>
+              <div class="metric accessory" id="borne-mylight-metric">
+                <div class="metric-label">Borne Mylight150 HT</div>
+                <div class="metric-value" id="v-borne-mylight">—</div>
+              </div>
+              <div class="metric accessory" id="borne-schneider-metric">
+                <div class="metric-label">Borne Schneider HT</div>
+                <div class="metric-value" id="v-borne-schneider">—</div>
               </div>
               <div class="metric target">
                 <div class="metric-label">Prix cible recommandé HT</div>
@@ -1462,13 +1604,44 @@
       tri:  { pr: 1721, pv: 3127 }
     };
 
+    // Marges appliquées aux références annexes (batteries physiques, bornes)
+    const MARGE_STANDARD = 0.45;
+    const MARGE_BORNE_SCHNEIDER = 0.50;
+
+    const pvDepuisPr = (pr, marge) => Math.round(pr / (1 - marge));
+
+    const BATTERIES = {
+      none:          { label: 'Aucune batterie physique', short: '', pr: 0, pv: 0, marge: 0 },
+      atmoce7:       { label: 'Batterie 7 kWh ATMOCE', short: 'Batterie ATMOCE 7 kWh', pr: 3178.40, marge: MARGE_STANDARD },
+      retrofit_tri:  { label: 'Kit rétrofit triphasé + batterie ATMOCE 7 kWh', short: 'Kit rétrofit tri', pr: 4263, marge: MARGE_STANDARD },
+      retrofit_mono: { label: 'Kit rétrofit monophasé + batterie ATMOCE 7 kWh', short: 'Kit rétrofit mono', pr: 4219.50, marge: MARGE_STANDARD }
+    };
+
+    const BORNES = {
+      mylight:   { label: 'Borne Mylight150 MySmartCharger', pr: 685.85, marge: MARGE_STANDARD },
+      schneider: { label: 'Borne Schneider 7,4 / 11 / 22 kW', pr: 945, marge: MARGE_BORNE_SCHNEIDER }
+    };
+
+    Object.keys(BATTERIES).forEach(key => {
+      const item = BATTERIES[key];
+      if (item.pr) item.pv = pvDepuisPr(item.pr, item.marge);
+    });
+
+    Object.keys(BORNES).forEach(key => {
+      const item = BORNES[key];
+      item.pv = pvDepuisPr(item.pr, item.marge);
+    });
+
     let bvSelected = false;
-    let lastBvPv = 0;
+    let batterySelected = 'none';
+    let bornesSelected = { mylight: false, schneider: false };
+    let lastOptionsPv = 0;
     let curPR = 0, curCible = 0, curPlancher = 0, cibleMC = 0;
     let currentKw = null, baseData = null, baseReferenceKw = null, isCustomKwc = false;
 
     const fmt = v => Math.round(v).toLocaleString('fr-FR') + ' €';
     const fmtS = v => (v >= 0 ? '+' : '−') + Math.abs(Math.round(v)).toLocaleString('fr-FR') + ' €';
+    const fmt2 = v => v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
     const parseVal = s => parseFloat(String(s).replace(/\s/g,'').replace('€','').replace(',','.')) || 0;
     const getPvCible = data => Math.round(
       (data.mat || 0) +
@@ -1486,6 +1659,13 @@
     const phaseWrap = document.getElementById('phase-wrap');
     const bvOption = document.getElementById('bv-option');
     const bvWrap = document.getElementById('bv-wrap');
+    const batteryPhysWrap = document.getElementById('battery-phys-wrap');
+    const batteryPhysToggle = document.getElementById('battery-phys-toggle');
+    const batteryPhysBody = document.getElementById('battery-phys-body');
+    const batteryPhysSelect = document.getElementById('battery-phys');
+    const batteryPhysSummary = document.getElementById('battery-phys-summary');
+    const batteryPhysDetail = document.getElementById('battery-phys-detail');
+    const bornesWrap = document.getElementById('bornes-wrap');
     const phaseMonoCard = document.getElementById('phaseMonoCard');
     const phaseTriCard = document.getElementById('phaseTriCard');
     const phaseTriText = document.getElementById('phaseTriText');
@@ -1528,6 +1708,64 @@
       if (mc < 50) return { label: 'À corriger', cls: 'status-danger' };
       if (mc < 60) return { label: 'Bonne vente', cls: 'status-ok' };
       return { label: 'Très bonne vente', cls: 'status-success' };
+    }
+
+    function buildBatteryOptions() {
+      batteryPhysSelect.innerHTML = Object.keys(BATTERIES).map(key => {
+        const item = BATTERIES[key];
+        const label = item.pr ? item.label + ' — ' + fmt(item.pv) : item.label;
+        return '<option value="' + key + '">' + label + '</option>';
+      }).join('');
+      batteryPhysSelect.value = batterySelected;
+    }
+
+    function updateBatterySummary() {
+      const item = BATTERIES[batterySelected];
+
+      if (!item || !item.pr) {
+        batteryPhysSummary.textContent = 'Aucune batterie sélectionnée';
+        batteryPhysDetail.textContent = '';
+        return;
+      }
+
+      batteryPhysSummary.textContent = (item.short || item.label) + ' · ' + fmt(item.pv);
+      batteryPhysDetail.textContent =
+        'Coût ' + fmt2(item.pr) + ' HT · marge ' + Math.round(item.marge * 100) + ' % · prix de vente ' + fmt(item.pv) + ' HT';
+    }
+
+    function updateBornesLabels() {
+      document.getElementById('borne-mylight-price').textContent = fmt(BORNES.mylight.pv);
+      document.getElementById('borne-schneider-price').textContent = fmt(BORNES.schneider.pv);
+    }
+
+    function getOptionsTotals() {
+      let pr = 0;
+      let pv = 0;
+      const lines = [];
+
+      if (bvOption && bvOption.checked) {
+        const bv = radioTri.checked ? BV.tri : BV.mono;
+        pr += bv.pr;
+        pv += bv.pv;
+        lines.push({ label: 'My Smart Battery', pv: bv.pv });
+      }
+
+      const battery = BATTERIES[batterySelected];
+      if (battery && battery.pr) {
+        pr += battery.pr;
+        pv += battery.pv;
+        lines.push({ label: battery.short || battery.label, pv: battery.pv });
+      }
+
+      Object.keys(BORNES).forEach(key => {
+        if (!bornesSelected[key]) return;
+        const borne = BORNES[key];
+        pr += borne.pr;
+        pv += borne.pv;
+        lines.push({ label: borne.label, pv: borne.pv });
+      });
+
+      return { pr: Math.round(pr), pv: Math.round(pv), lines };
     }
 
     function updatePhaseUi() {
@@ -1616,16 +1854,17 @@
       const data = applyTriphase(baseData, radioTri.checked);
       bvSelected = Boolean(bvOption && bvOption.checked);
       const bv = bvSelected ? (radioTri.checked ? BV.tri : BV.mono) : null;
+      const options = getOptionsTotals();
 
-      lastBvPv = bv ? bv.pv : 0;
-      curPR = data.pr + (bv ? bv.pr : 0);
-      curCible = getPvCible(data) + (bv ? bv.pv : 0);
-      cibleMC = data.mc || ((curCible - curPR) / curCible) * 100;
+      curPR = data.pr + options.pr;
+      curCible = getPvCible(data) + options.pv;
+      cibleMC = curCible ? ((curCible - curPR) / curCible) * 100 : (data.mc || 0);
       curPlancher = Math.ceil(curPR / (1 - MC_MIN));
 
       return {
         data,
         bv,
+        options,
         pr: curPR,
         cible: curCible,
         plancher: curPlancher,
@@ -1650,6 +1889,18 @@
       document.getElementById('v-consuel').textContent = fmt(data.consuel || 0);
       document.getElementById('v-battery').textContent = totals.bv ? fmt(totals.bv.pv) : '—';
       batteryMetric.classList.toggle('show', Boolean(totals.bv));
+
+      const battery = BATTERIES[batterySelected];
+      const hasBattery = Boolean(battery && battery.pr);
+      document.getElementById('v-battery-phys').textContent = hasBattery ? fmt(battery.pv) : '—';
+      document.getElementById('battery-phys-metric').classList.toggle('show', hasBattery);
+
+      Object.keys(BORNES).forEach(key => {
+        const active = Boolean(bornesSelected[key]);
+        document.getElementById('v-borne-' + key).textContent = active ? fmt(BORNES[key].pv) : '—';
+        document.getElementById('borne-' + key + '-metric').classList.toggle('show', active);
+      });
+
        document.getElementById('v-cible').textContent = fmt(totals.cible);
       document.getElementById('v-cible-mc').textContent = 'MC ref : ' + totals.cibleMc.toFixed(1) + ' %';
     }
@@ -1660,10 +1911,20 @@
       const totals = syncFinancials();
       if (!totals) return;
 
+      if (totals.options.pv !== lastOptionsPv) {
+        const currentPv = parseVal(pvInput.value);
+        if (currentPv) {
+          pvInput.value = Math.round(currentPv - lastOptionsPv + totals.options.pv).toLocaleString('fr-FR');
+        }
+        lastOptionsPv = totals.options.pv;
+      }
+
       updateBreakdownDisplay(totals, parseVal(pvInput.value));
       document.getElementById('cost-grid').style.display = 'grid';
       phaseWrap.style.display = 'grid';
       bvWrap.style.display = 'block';
+      batteryPhysWrap.style.display = 'block';
+      bornesWrap.style.display = 'block';
       document.getElementById('plancher-val').textContent = fmt(curPlancher);
       document.getElementById('floor-card').classList.remove('show');
 
@@ -1688,11 +1949,23 @@
       if (!calculated || numericKw < 3 || numericKw > 250) {
         document.getElementById('cost-grid').style.display = 'none';
         document.getElementById('battery-metric').classList.remove('show');
+        document.getElementById('battery-phys-metric').classList.remove('show');
+        Object.keys(BORNES).forEach(key => {
+          document.getElementById('borne-' + key + '-metric').classList.remove('show');
+          const input = document.getElementById('borne-' + key);
+          if (input) input.checked = false;
+          bornesSelected[key] = false;
+        });
         phaseWrap.style.display = 'none';
         bvWrap.style.display = 'none';
+        batteryPhysWrap.style.display = 'none';
+        bornesWrap.style.display = 'none';
         if (bvOption) bvOption.checked = false;
         bvSelected = false;
-        lastBvPv = 0;
+        batterySelected = 'none';
+        batteryPhysSelect.value = 'none';
+        updateBatterySummary();
+        lastOptionsPv = 0;
         document.getElementById('floor-card').classList.remove('show');
         document.getElementById('blocked-banner').classList.remove('show');
         kwcMethod.style.display = 'none';
@@ -1712,39 +1985,39 @@
     }
 
     radioMono.addEventListener('change', () => {
-      if (bvSelected && lastBvPv) {
-        const pv = parseVal(pvInput.value);
-        lastBvPv = BV.mono.pv;
-        if (pv) pvInput.value = Math.round(pv - BV.tri.pv + BV.mono.pv).toLocaleString('fr-FR');
-      }
       updatePhaseUi();
       if (currentKw) refreshPrices();
     });
 
     radioTri.addEventListener('change', () => {
-      if (bvSelected && lastBvPv) {
-        const pv = parseVal(pvInput.value);
-        lastBvPv = BV.tri.pv;
-        if (pv) pvInput.value = Math.round(pv - BV.mono.pv + BV.tri.pv).toLocaleString('fr-FR');
-      }
       updatePhaseUi();
       if (currentKw) refreshPrices();
     });
 
     bvOption.addEventListener('change', () => {
-      const previousBvPv = lastBvPv;
-      const nextBv = radioTri.checked ? BV.tri : BV.mono;
-      const pv = parseVal(pvInput.value);
-
       bvSelected = Boolean(bvOption.checked);
-      lastBvPv = bvSelected ? nextBv.pv : 0;
-
-      if (pv) {
-        const adjustedPv = pv - previousBvPv + lastBvPv;
-        pvInput.value = Math.round(adjustedPv).toLocaleString('fr-FR');
-      }
-
       if (currentKw) refreshPrices();
+    });
+
+    batteryPhysToggle.addEventListener('click', () => {
+      const expanded = batteryPhysToggle.getAttribute('aria-expanded') === 'true';
+      batteryPhysToggle.setAttribute('aria-expanded', String(!expanded));
+      batteryPhysBody.classList.toggle('show', !expanded);
+    });
+
+    batteryPhysSelect.addEventListener('change', () => {
+      batterySelected = batteryPhysSelect.value;
+      updateBatterySummary();
+      if (currentKw) refreshPrices();
+    });
+
+    Object.keys(BORNES).forEach(key => {
+      const input = document.getElementById('borne-' + key);
+      if (!input) return;
+      input.addEventListener('change', () => {
+        bornesSelected[key] = input.checked;
+        if (currentKw) refreshPrices();
+      });
     });
 
     customKwcInput.addEventListener('input', () => {
@@ -1807,12 +2080,27 @@
         </div>`;
     }
 
+    function buildOptionsRecap(lines) {
+      if (!lines || !lines.length) return '';
+
+      const rows = lines.map(line =>
+        `<div class="options-recap-line"><span>${line.label}</span><span>${fmt(line.pv)}</span></div>`
+      ).join('');
+
+      return `
+        <div class="options-recap show">
+          <div class="options-recap-label">Options incluses</div>
+          ${rows}
+        </div>`;
+    }
+
     function compute() {
       const totals = (currentKw && baseData) ? syncFinancials() : null;
       const prTotal = totals ? totals.pr : curPR;
       const cibleTotal = totals ? totals.cible : curCible;
       const plancherTotal = totals ? totals.plancher : curPlancher;
       const cibleMcTotal = totals ? totals.cibleMc : cibleMC;
+      const optionLines = totals ? totals.options.lines : [];
 
       const pv = parseVal(pvInput.value);
       const body = document.getElementById('result-body');
@@ -1893,6 +2181,7 @@
             </div>
           </div>
         </div>
+        ${buildOptionsRecap(optionLines)}
         <div class="bar-track"><div class="bar-fill" style="width:${barPct}%"></div></div>
         <div class="target-label"><span>Prix de Vente cible ${cibleMcTotal.toFixed(1)} %${bvSelected ? ' + My Smart Battery' : ''}</span></div>
         <div class="tier-scale">
@@ -1911,6 +2200,10 @@
           <div class="commission-amount">${fmt(commission)}</div>
         </div>`;
     }
+
+    buildBatteryOptions();
+    updateBatterySummary();
+    updateBornesLabels();
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
